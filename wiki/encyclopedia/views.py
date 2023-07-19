@@ -21,9 +21,7 @@ def index(request):
 
 def page(request, name):
     if name not in util.list_entries():
-        return render(request, "encyclopedia/error.html", {
-            "entry": False,
-        })
+        return HttpResponseRedirect(reverse("encyclopedia:error"))
     else:
         content = markdownToHTML(name)
         return render(request, "encyclopedia/page.html", {
@@ -31,6 +29,9 @@ def page(request, name):
             "title": name,
         })
     
+def error(request):
+    return render(request, "encyclopedia/error.html")
+
 def newPage(request):
     if request.method == "POST":
         form = newPageForm(request.POST)
@@ -54,3 +55,14 @@ def newPage(request):
 def randomPage(request):
     list = random.choice(util.list_entries())
     return HttpResponseRedirect("wiki/"+list)
+
+def searchPage(request):
+    if request.method == "POST":
+        search = request.POST['q']
+        if search in util.list_entries():
+            return HttpResponseRedirect("wiki/"+search)
+        else:
+            for entry in util.list_entries():
+                if search in entry:
+                    return HttpResponseRedirect("wiki/"+entry)
+    return HttpResponseRedirect(reverse("encyclopedia:error"))
