@@ -6,6 +6,9 @@ from . import util
 from django.http import HttpResponseRedirect
 import random
 
+class editPageForm(forms.Form):
+    body = forms.CharField(widget=forms.Textarea)
+
 class newPageForm(forms.Form):
     title =  forms.CharField()
     body = forms.CharField(widget=forms.Textarea)
@@ -66,3 +69,18 @@ def searchPage(request):
                 if search in entry:
                     return HttpResponseRedirect("wiki/"+entry)
     return HttpResponseRedirect(reverse("encyclopedia:error"))
+
+def editPage(request, name):
+    form = editPageForm(initial={'body': util.get_entry(name)})
+    if request.method == "POST":
+        form = editPageForm(request.POST)
+        if form.is_valid():
+            body = form.cleaned_data["body"]
+            
+            if name in util.list_entries():
+                util.save_entry(name, body)
+                return HttpResponseRedirect("/wiki/"+name)
+    return render(request, "encyclopedia/editPage.html", {
+        "form": form,
+    })
+
